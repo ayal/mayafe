@@ -4,119 +4,195 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>mayafe</title>
-<meta name="description" content="mayafe: a live take made with ZUPAKOLLIDA (SuperCollider + KO II + MiniLab 3).">
-<meta property="og:title" content="mayafe">
+<title>mayafe · ZUPAKOLLIDA</title>
+<meta name="description" content="mayafe: a live take made with ZUPAKOLLIDA (SuperCollider + KO II + MiniLab 3). Press play.">
+<meta property="og:title" content="mayafe · ZUPAKOLLIDA">
 <meta property="og:description" content="A live take made with ZUPAKOLLIDA. Press play.">
 <meta property="og:type" content="music.song">
+<meta property="og:url" content="https://ayal.github.io/mayafe/">
+<meta property="og:image" content="https://ayal.github.io/mayafe/thumb.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ayal.github.io/mayafe/thumb.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  body { font: 14px/1.4 Menlo, "SF Mono", Consolas, monospace; color: #d9d9d1; -webkit-tap-highlight-color: transparent;
-         touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
   canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-  #top { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); padding: 0 16px; text-align: center; pointer-events: none; }
-  #led { width: min(92vw, 720px); height: auto; transition: transform 60ms linear; transform-origin: 50% 50%; }
-  #title { font-size: clamp(22px, 6vw, 40px); font-weight: bold; color: #fff; letter-spacing: 2px; margin-top: 6px; text-shadow: 3px 3px 0 #5e2a0e; }
-  #play { position: fixed; left: 50%; top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%;
-          border: 4px solid #f26b2b; background: rgba(0,0,0,.55); cursor: pointer; display: grid; place-items: center; padding: 0; }
-  #play:focus-visible { outline: 3px solid #8cd99a; outline-offset: 4px; }
-  #play svg { width: 46px; height: 46px; fill: #f26b2b; }
-  body.playing #play { opacity: .35; }
-  #bottom { position: fixed; left: 0; right: 0; bottom: max(12px, env(safe-area-inset-bottom)); padding: 0 16px; text-align: center; font-size: 12px; color: #8a8a80; }
-  #bar { height: 4px; background: #222; margin: 0 auto 10px; max-width: 720px; border-radius: 2px; overflow: hidden; }
-  #fill { height: 100%; width: 0; background: #f26b2b; }
-  a { color: #f26b2b; pointer-events: auto; }
+  #tap { position: fixed; inset: 0; background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer; }
+  #tap:focus-visible { outline: 3px solid #f26b2b; outline-offset: -6px; }
+  #dl { position: fixed; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); z-index: 2;
+        font: bold 12px/1 Menlo, "SF Mono", Consolas, monospace; letter-spacing: 1px; }
+  #dl a { color: #000; background: #f26b2b; text-decoration: none; padding: 6px 8px; margin-left: 6px; display: inline-block; }
+  #dl a:active { background: #fff; }
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="top"><svg id="led" viewBox="0 0 892 76" role="img" aria-label="ZUPAKOLLIDA"><g fill="#5e2a0e"><rect x="4" y="4" width="10" height="10"/><rect x="16" y="4" width="10" height="10"/><rect x="28" y="4" width="10" height="10"/><rect x="40" y="4" width="10" height="10"/><rect x="52" y="4" width="10" height="10"/><rect x="64" y="4" width="10" height="10"/><rect x="52" y="16" width="10" height="10"/><rect x="64" y="16" width="10" height="10"/><rect x="40" y="28" width="10" height="10"/><rect x="52" y="28" width="10" height="10"/><rect x="28" y="40" width="10" height="10"/><rect x="40" y="40" width="10" height="10"/><rect x="16" y="52" width="10" height="10"/><rect x="28" y="52" width="10" height="10"/><rect x="4" y="64" width="10" height="10"/><rect x="16" y="64" width="10" height="10"/><rect x="28" y="64" width="10" height="10"/><rect x="40" y="64" width="10" height="10"/><rect x="52" y="64" width="10" height="10"/><rect x="64" y="64" width="10" height="10"/><rect x="88" y="4" width="10" height="10"/><rect x="100" y="4" width="10" height="10"/><rect x="136" y="4" width="10" height="10"/><rect x="148" y="4" width="10" height="10"/><rect x="88" y="16" width="10" height="10"/><rect x="100" y="16" width="10" height="10"/><rect x="136" y="16" width="10" height="10"/><rect x="148" y="16" width="10" height="10"/><rect x="88" y="28" width="10" height="10"/><rect x="100" y="28" width="10" height="10"/><rect x="136" y="28" width="10" height="10"/><rect x="148" y="28" width="10" height="10"/><rect x="88" y="40" width="10" height="10"/><rect x="100" y="40" width="10" height="10"/><rect x="136" y="40" width="10" height="10"/><rect x="148" y="40" width="10" height="10"/><rect x="88" y="52" width="10" height="10"/><rect x="100" y="52" width="10" height="10"/><rect x="136" y="52" width="10" height="10"/><rect x="148" y="52" width="10" height="10"/><rect x="100" y="64" width="10" height="10"/><rect x="112" y="64" width="10" height="10"/><rect x="124" y="64" width="10" height="10"/><rect x="136" y="64" width="10" height="10"/><rect x="172" y="4" width="10" height="10"/><rect x="184" y="4" width="10" height="10"/><rect x="196" y="4" width="10" height="10"/><rect x="208" y="4" width="10" height="10"/><rect x="220" y="4" width="10" height="10"/><rect x="172" y="16" width="10" height="10"/><rect x="184" y="16" width="10" height="10"/><rect x="220" y="16" width="10" height="10"/><rect x="232" y="16" width="10" height="10"/><rect x="172" y="28" width="10" height="10"/><rect x="184" y="28" width="10" height="10"/><rect x="220" y="28" width="10" height="10"/><rect x="232" y="28" width="10" height="10"/><rect x="172" y="40" width="10" height="10"/><rect x="184" y="40" width="10" height="10"/><rect x="196" y="40" width="10" height="10"/><rect x="208" y="40" width="10" height="10"/><rect x="220" y="40" width="10" height="10"/><rect x="172" y="52" width="10" height="10"/><rect x="184" y="52" width="10" height="10"/><rect x="172" y="64" width="10" height="10"/><rect x="184" y="64" width="10" height="10"/><rect x="268" y="4" width="10" height="10"/><rect x="280" y="4" width="10" height="10"/><rect x="292" y="4" width="10" height="10"/><rect x="304" y="4" width="10" height="10"/><rect x="256" y="16" width="10" height="10"/><rect x="268" y="16" width="10" height="10"/><rect x="304" y="16" width="10" height="10"/><rect x="316" y="16" width="10" height="10"/><rect x="256" y="28" width="10" height="10"/><rect x="268" y="28" width="10" height="10"/><rect x="304" y="28" width="10" height="10"/><rect x="316" y="28" width="10" height="10"/><rect x="256" y="40" width="10" height="10"/><rect x="268" y="40" width="10" height="10"/><rect x="280" y="40" width="10" height="10"/><rect x="292" y="40" width="10" height="10"/><rect x="304" y="40" width="10" height="10"/><rect x="316" y="40" width="10" height="10"/><rect x="256" y="52" width="10" height="10"/><rect x="268" y="52" width="10" height="10"/><rect x="304" y="52" width="10" height="10"/><rect x="316" y="52" width="10" height="10"/><rect x="256" y="64" width="10" height="10"/><rect x="268" y="64" width="10" height="10"/><rect x="304" y="64" width="10" height="10"/><rect x="316" y="64" width="10" height="10"/><rect x="340" y="4" width="10" height="10"/><rect x="352" y="4" width="10" height="10"/><rect x="388" y="4" width="10" height="10"/><rect x="400" y="4" width="10" height="10"/><rect x="340" y="16" width="10" height="10"/><rect x="352" y="16" width="10" height="10"/><rect x="376" y="16" width="10" height="10"/><rect x="388" y="16" width="10" height="10"/><rect x="340" y="28" width="10" height="10"/><rect x="352" y="28" width="10" height="10"/><rect x="364" y="28" width="10" height="10"/><rect x="376" y="28" width="10" height="10"/><rect x="340" y="40" width="10" height="10"/><rect x="352" y="40" width="10" height="10"/><rect x="364" y="40" width="10" height="10"/><rect x="376" y="40" width="10" height="10"/><rect x="340" y="52" width="10" height="10"/><rect x="352" y="52" width="10" height="10"/><rect x="376" y="52" width="10" height="10"/><rect x="388" y="52" width="10" height="10"/><rect x="340" y="64" width="10" height="10"/><rect x="352" y="64" width="10" height="10"/><rect x="388" y="64" width="10" height="10"/><rect x="400" y="64" width="10" height="10"/><rect x="436" y="4" width="10" height="10"/><rect x="448" y="4" width="10" height="10"/><rect x="460" y="4" width="10" height="10"/><rect x="472" y="4" width="10" height="10"/><rect x="424" y="16" width="10" height="10"/><rect x="436" y="16" width="10" height="10"/><rect x="472" y="16" width="10" height="10"/><rect x="484" y="16" width="10" height="10"/><rect x="424" y="28" width="10" height="10"/><rect x="436" y="28" width="10" height="10"/><rect x="472" y="28" width="10" height="10"/><rect x="484" y="28" width="10" height="10"/><rect x="424" y="40" width="10" height="10"/><rect x="436" y="40" width="10" height="10"/><rect x="472" y="40" width="10" height="10"/><rect x="484" y="40" width="10" height="10"/><rect x="424" y="52" width="10" height="10"/><rect x="436" y="52" width="10" height="10"/><rect x="472" y="52" width="10" height="10"/><rect x="484" y="52" width="10" height="10"/><rect x="436" y="64" width="10" height="10"/><rect x="448" y="64" width="10" height="10"/><rect x="460" y="64" width="10" height="10"/><rect x="472" y="64" width="10" height="10"/><rect x="508" y="4" width="10" height="10"/><rect x="520" y="4" width="10" height="10"/><rect x="508" y="16" width="10" height="10"/><rect x="520" y="16" width="10" height="10"/><rect x="508" y="28" width="10" height="10"/><rect x="520" y="28" width="10" height="10"/><rect x="508" y="40" width="10" height="10"/><rect x="520" y="40" width="10" height="10"/><rect x="508" y="52" width="10" height="10"/><rect x="520" y="52" width="10" height="10"/><rect x="508" y="64" width="10" height="10"/><rect x="520" y="64" width="10" height="10"/><rect x="532" y="64" width="10" height="10"/><rect x="544" y="64" width="10" height="10"/><rect x="556" y="64" width="10" height="10"/><rect x="568" y="64" width="10" height="10"/><rect x="592" y="4" width="10" height="10"/><rect x="604" y="4" width="10" height="10"/><rect x="592" y="16" width="10" height="10"/><rect x="604" y="16" width="10" height="10"/><rect x="592" y="28" width="10" height="10"/><rect x="604" y="28" width="10" height="10"/><rect x="592" y="40" width="10" height="10"/><rect x="604" y="40" width="10" height="10"/><rect x="592" y="52" width="10" height="10"/><rect x="604" y="52" width="10" height="10"/><rect x="592" y="64" width="10" height="10"/><rect x="604" y="64" width="10" height="10"/><rect x="616" y="64" width="10" height="10"/><rect x="628" y="64" width="10" height="10"/><rect x="640" y="64" width="10" height="10"/><rect x="652" y="64" width="10" height="10"/><rect x="676" y="4" width="10" height="10"/><rect x="688" y="4" width="10" height="10"/><rect x="700" y="4" width="10" height="10"/><rect x="712" y="4" width="10" height="10"/><rect x="688" y="16" width="10" height="10"/><rect x="700" y="16" width="10" height="10"/><rect x="688" y="28" width="10" height="10"/><rect x="700" y="28" width="10" height="10"/><rect x="688" y="40" width="10" height="10"/><rect x="700" y="40" width="10" height="10"/><rect x="688" y="52" width="10" height="10"/><rect x="700" y="52" width="10" height="10"/><rect x="676" y="64" width="10" height="10"/><rect x="688" y="64" width="10" height="10"/><rect x="700" y="64" width="10" height="10"/><rect x="712" y="64" width="10" height="10"/><rect x="736" y="4" width="10" height="10"/><rect x="748" y="4" width="10" height="10"/><rect x="760" y="4" width="10" height="10"/><rect x="772" y="4" width="10" height="10"/><rect x="784" y="4" width="10" height="10"/><rect x="736" y="16" width="10" height="10"/><rect x="748" y="16" width="10" height="10"/><rect x="784" y="16" width="10" height="10"/><rect x="796" y="16" width="10" height="10"/><rect x="736" y="28" width="10" height="10"/><rect x="748" y="28" width="10" height="10"/><rect x="784" y="28" width="10" height="10"/><rect x="796" y="28" width="10" height="10"/><rect x="736" y="40" width="10" height="10"/><rect x="748" y="40" width="10" height="10"/><rect x="784" y="40" width="10" height="10"/><rect x="796" y="40" width="10" height="10"/><rect x="736" y="52" width="10" height="10"/><rect x="748" y="52" width="10" height="10"/><rect x="784" y="52" width="10" height="10"/><rect x="796" y="52" width="10" height="10"/><rect x="736" y="64" width="10" height="10"/><rect x="748" y="64" width="10" height="10"/><rect x="760" y="64" width="10" height="10"/><rect x="772" y="64" width="10" height="10"/><rect x="784" y="64" width="10" height="10"/><rect x="832" y="4" width="10" height="10"/><rect x="844" y="4" width="10" height="10"/><rect x="856" y="4" width="10" height="10"/><rect x="868" y="4" width="10" height="10"/><rect x="820" y="16" width="10" height="10"/><rect x="832" y="16" width="10" height="10"/><rect x="868" y="16" width="10" height="10"/><rect x="880" y="16" width="10" height="10"/><rect x="820" y="28" width="10" height="10"/><rect x="832" y="28" width="10" height="10"/><rect x="868" y="28" width="10" height="10"/><rect x="880" y="28" width="10" height="10"/><rect x="820" y="40" width="10" height="10"/><rect x="832" y="40" width="10" height="10"/><rect x="844" y="40" width="10" height="10"/><rect x="856" y="40" width="10" height="10"/><rect x="868" y="40" width="10" height="10"/><rect x="880" y="40" width="10" height="10"/><rect x="820" y="52" width="10" height="10"/><rect x="832" y="52" width="10" height="10"/><rect x="868" y="52" width="10" height="10"/><rect x="880" y="52" width="10" height="10"/><rect x="820" y="64" width="10" height="10"/><rect x="832" y="64" width="10" height="10"/><rect x="868" y="64" width="10" height="10"/><rect x="880" y="64" width="10" height="10"/></g><g fill="#f26b2b"><rect x="0" y="0" width="10" height="10"/><rect x="12" y="0" width="10" height="10"/><rect x="24" y="0" width="10" height="10"/><rect x="36" y="0" width="10" height="10"/><rect x="48" y="0" width="10" height="10"/><rect x="60" y="0" width="10" height="10"/><rect x="48" y="12" width="10" height="10"/><rect x="60" y="12" width="10" height="10"/><rect x="36" y="24" width="10" height="10"/><rect x="48" y="24" width="10" height="10"/><rect x="24" y="36" width="10" height="10"/><rect x="36" y="36" width="10" height="10"/><rect x="12" y="48" width="10" height="10"/><rect x="24" y="48" width="10" height="10"/><rect x="0" y="60" width="10" height="10"/><rect x="12" y="60" width="10" height="10"/><rect x="24" y="60" width="10" height="10"/><rect x="36" y="60" width="10" height="10"/><rect x="48" y="60" width="10" height="10"/><rect x="60" y="60" width="10" height="10"/><rect x="84" y="0" width="10" height="10"/><rect x="96" y="0" width="10" height="10"/><rect x="132" y="0" width="10" height="10"/><rect x="144" y="0" width="10" height="10"/><rect x="84" y="12" width="10" height="10"/><rect x="96" y="12" width="10" height="10"/><rect x="132" y="12" width="10" height="10"/><rect x="144" y="12" width="10" height="10"/><rect x="84" y="24" width="10" height="10"/><rect x="96" y="24" width="10" height="10"/><rect x="132" y="24" width="10" height="10"/><rect x="144" y="24" width="10" height="10"/><rect x="84" y="36" width="10" height="10"/><rect x="96" y="36" width="10" height="10"/><rect x="132" y="36" width="10" height="10"/><rect x="144" y="36" width="10" height="10"/><rect x="84" y="48" width="10" height="10"/><rect x="96" y="48" width="10" height="10"/><rect x="132" y="48" width="10" height="10"/><rect x="144" y="48" width="10" height="10"/><rect x="96" y="60" width="10" height="10"/><rect x="108" y="60" width="10" height="10"/><rect x="120" y="60" width="10" height="10"/><rect x="132" y="60" width="10" height="10"/><rect x="168" y="0" width="10" height="10"/><rect x="180" y="0" width="10" height="10"/><rect x="192" y="0" width="10" height="10"/><rect x="204" y="0" width="10" height="10"/><rect x="216" y="0" width="10" height="10"/><rect x="168" y="12" width="10" height="10"/><rect x="180" y="12" width="10" height="10"/><rect x="216" y="12" width="10" height="10"/><rect x="228" y="12" width="10" height="10"/><rect x="168" y="24" width="10" height="10"/><rect x="180" y="24" width="10" height="10"/><rect x="216" y="24" width="10" height="10"/><rect x="228" y="24" width="10" height="10"/><rect x="168" y="36" width="10" height="10"/><rect x="180" y="36" width="10" height="10"/><rect x="192" y="36" width="10" height="10"/><rect x="204" y="36" width="10" height="10"/><rect x="216" y="36" width="10" height="10"/><rect x="168" y="48" width="10" height="10"/><rect x="180" y="48" width="10" height="10"/><rect x="168" y="60" width="10" height="10"/><rect x="180" y="60" width="10" height="10"/><rect x="264" y="0" width="10" height="10"/><rect x="276" y="0" width="10" height="10"/><rect x="288" y="0" width="10" height="10"/><rect x="300" y="0" width="10" height="10"/><rect x="252" y="12" width="10" height="10"/><rect x="264" y="12" width="10" height="10"/><rect x="300" y="12" width="10" height="10"/><rect x="312" y="12" width="10" height="10"/><rect x="252" y="24" width="10" height="10"/><rect x="264" y="24" width="10" height="10"/><rect x="300" y="24" width="10" height="10"/><rect x="312" y="24" width="10" height="10"/><rect x="252" y="36" width="10" height="10"/><rect x="264" y="36" width="10" height="10"/><rect x="276" y="36" width="10" height="10"/><rect x="288" y="36" width="10" height="10"/><rect x="300" y="36" width="10" height="10"/><rect x="312" y="36" width="10" height="10"/><rect x="252" y="48" width="10" height="10"/><rect x="264" y="48" width="10" height="10"/><rect x="300" y="48" width="10" height="10"/><rect x="312" y="48" width="10" height="10"/><rect x="252" y="60" width="10" height="10"/><rect x="264" y="60" width="10" height="10"/><rect x="300" y="60" width="10" height="10"/><rect x="312" y="60" width="10" height="10"/><rect x="336" y="0" width="10" height="10"/><rect x="348" y="0" width="10" height="10"/><rect x="384" y="0" width="10" height="10"/><rect x="396" y="0" width="10" height="10"/><rect x="336" y="12" width="10" height="10"/><rect x="348" y="12" width="10" height="10"/><rect x="372" y="12" width="10" height="10"/><rect x="384" y="12" width="10" height="10"/><rect x="336" y="24" width="10" height="10"/><rect x="348" y="24" width="10" height="10"/><rect x="360" y="24" width="10" height="10"/><rect x="372" y="24" width="10" height="10"/><rect x="336" y="36" width="10" height="10"/><rect x="348" y="36" width="10" height="10"/><rect x="360" y="36" width="10" height="10"/><rect x="372" y="36" width="10" height="10"/><rect x="336" y="48" width="10" height="10"/><rect x="348" y="48" width="10" height="10"/><rect x="372" y="48" width="10" height="10"/><rect x="384" y="48" width="10" height="10"/><rect x="336" y="60" width="10" height="10"/><rect x="348" y="60" width="10" height="10"/><rect x="384" y="60" width="10" height="10"/><rect x="396" y="60" width="10" height="10"/><rect x="432" y="0" width="10" height="10"/><rect x="444" y="0" width="10" height="10"/><rect x="456" y="0" width="10" height="10"/><rect x="468" y="0" width="10" height="10"/><rect x="420" y="12" width="10" height="10"/><rect x="432" y="12" width="10" height="10"/><rect x="468" y="12" width="10" height="10"/><rect x="480" y="12" width="10" height="10"/><rect x="420" y="24" width="10" height="10"/><rect x="432" y="24" width="10" height="10"/><rect x="468" y="24" width="10" height="10"/><rect x="480" y="24" width="10" height="10"/><rect x="420" y="36" width="10" height="10"/><rect x="432" y="36" width="10" height="10"/><rect x="468" y="36" width="10" height="10"/><rect x="480" y="36" width="10" height="10"/><rect x="420" y="48" width="10" height="10"/><rect x="432" y="48" width="10" height="10"/><rect x="468" y="48" width="10" height="10"/><rect x="480" y="48" width="10" height="10"/><rect x="432" y="60" width="10" height="10"/><rect x="444" y="60" width="10" height="10"/><rect x="456" y="60" width="10" height="10"/><rect x="468" y="60" width="10" height="10"/><rect x="504" y="0" width="10" height="10"/><rect x="516" y="0" width="10" height="10"/><rect x="504" y="12" width="10" height="10"/><rect x="516" y="12" width="10" height="10"/><rect x="504" y="24" width="10" height="10"/><rect x="516" y="24" width="10" height="10"/><rect x="504" y="36" width="10" height="10"/><rect x="516" y="36" width="10" height="10"/><rect x="504" y="48" width="10" height="10"/><rect x="516" y="48" width="10" height="10"/><rect x="504" y="60" width="10" height="10"/><rect x="516" y="60" width="10" height="10"/><rect x="528" y="60" width="10" height="10"/><rect x="540" y="60" width="10" height="10"/><rect x="552" y="60" width="10" height="10"/><rect x="564" y="60" width="10" height="10"/><rect x="588" y="0" width="10" height="10"/><rect x="600" y="0" width="10" height="10"/><rect x="588" y="12" width="10" height="10"/><rect x="600" y="12" width="10" height="10"/><rect x="588" y="24" width="10" height="10"/><rect x="600" y="24" width="10" height="10"/><rect x="588" y="36" width="10" height="10"/><rect x="600" y="36" width="10" height="10"/><rect x="588" y="48" width="10" height="10"/><rect x="600" y="48" width="10" height="10"/><rect x="588" y="60" width="10" height="10"/><rect x="600" y="60" width="10" height="10"/><rect x="612" y="60" width="10" height="10"/><rect x="624" y="60" width="10" height="10"/><rect x="636" y="60" width="10" height="10"/><rect x="648" y="60" width="10" height="10"/><rect x="672" y="0" width="10" height="10"/><rect x="684" y="0" width="10" height="10"/><rect x="696" y="0" width="10" height="10"/><rect x="708" y="0" width="10" height="10"/><rect x="684" y="12" width="10" height="10"/><rect x="696" y="12" width="10" height="10"/><rect x="684" y="24" width="10" height="10"/><rect x="696" y="24" width="10" height="10"/><rect x="684" y="36" width="10" height="10"/><rect x="696" y="36" width="10" height="10"/><rect x="684" y="48" width="10" height="10"/><rect x="696" y="48" width="10" height="10"/><rect x="672" y="60" width="10" height="10"/><rect x="684" y="60" width="10" height="10"/><rect x="696" y="60" width="10" height="10"/><rect x="708" y="60" width="10" height="10"/><rect x="732" y="0" width="10" height="10"/><rect x="744" y="0" width="10" height="10"/><rect x="756" y="0" width="10" height="10"/><rect x="768" y="0" width="10" height="10"/><rect x="780" y="0" width="10" height="10"/><rect x="732" y="12" width="10" height="10"/><rect x="744" y="12" width="10" height="10"/><rect x="780" y="12" width="10" height="10"/><rect x="792" y="12" width="10" height="10"/><rect x="732" y="24" width="10" height="10"/><rect x="744" y="24" width="10" height="10"/><rect x="780" y="24" width="10" height="10"/><rect x="792" y="24" width="10" height="10"/><rect x="732" y="36" width="10" height="10"/><rect x="744" y="36" width="10" height="10"/><rect x="780" y="36" width="10" height="10"/><rect x="792" y="36" width="10" height="10"/><rect x="732" y="48" width="10" height="10"/><rect x="744" y="48" width="10" height="10"/><rect x="780" y="48" width="10" height="10"/><rect x="792" y="48" width="10" height="10"/><rect x="732" y="60" width="10" height="10"/><rect x="744" y="60" width="10" height="10"/><rect x="756" y="60" width="10" height="10"/><rect x="768" y="60" width="10" height="10"/><rect x="780" y="60" width="10" height="10"/><rect x="828" y="0" width="10" height="10"/><rect x="840" y="0" width="10" height="10"/><rect x="852" y="0" width="10" height="10"/><rect x="864" y="0" width="10" height="10"/><rect x="816" y="12" width="10" height="10"/><rect x="828" y="12" width="10" height="10"/><rect x="864" y="12" width="10" height="10"/><rect x="876" y="12" width="10" height="10"/><rect x="816" y="24" width="10" height="10"/><rect x="828" y="24" width="10" height="10"/><rect x="864" y="24" width="10" height="10"/><rect x="876" y="24" width="10" height="10"/><rect x="816" y="36" width="10" height="10"/><rect x="828" y="36" width="10" height="10"/><rect x="840" y="36" width="10" height="10"/><rect x="852" y="36" width="10" height="10"/><rect x="864" y="36" width="10" height="10"/><rect x="876" y="36" width="10" height="10"/><rect x="816" y="48" width="10" height="10"/><rect x="828" y="48" width="10" height="10"/><rect x="864" y="48" width="10" height="10"/><rect x="876" y="48" width="10" height="10"/><rect x="816" y="60" width="10" height="10"/><rect x="828" y="60" width="10" height="10"/><rect x="864" y="60" width="10" height="10"/><rect x="876" y="60" width="10" height="10"/></g></svg><div id="title">mayafe</div></div>
-<button id="play" aria-label="Play">
-  <svg id="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-</button>
-<div id="bottom">
-  <div id="bar"><div id="fill"></div></div>
-  <span id="time">0:00 / 2:53</span> · live take, 17 Oct 2026 ·
-  <a href="audio/mayafe-take-2026-10-17.mp3" download>mp3</a> · <a href="audio/mayafe-take-2026-10-17.flac" download>flac</a>
-</div>
+<canvas id="c" aria-hidden="true"></canvas>
+<button id="tap" aria-label="Play mayafe"></button>
+<div id="dl"><a href="audio/mayafe-take-2026-10-17.mp3" download>MP3</a><a href="audio/mayafe-take-2026-10-17.flac" download>FLAC</a></div>
 <audio id="a" src="audio/mayafe-take-2026-10-17.mp3" preload="auto" playsinline></audio>
 <script>
-// one page: play / pause, and an old-school demo (copper bars, starfield, sine scroller, spectrum) that moves with the music
-const a = document.getElementById('a'), btn = document.getElementById('play'), ico = document.getElementById('ico');
-const cv = document.getElementById('c'), g = cv.getContext('2d'), led = document.getElementById('led');
-const fill = document.getElementById('fill'), timeEl = document.getElementById('time');
+// mayafe: a one-screen demo in the old Amiga / DOS way. Everything is drawn into a tiny low-res buffer (160-240 px wide) and blown
+// up with hard pixels. Parts: plasma, tunnel, vector balls, rotozoomer, switching every 16 s with a flash; a copper-filled pixel
+// logo, a 5x7 bitmap sine scroller. The kick (from the Web Audio analyser) drives flashes, speed and zoom. Tap anywhere: play / pause.
+const a = document.getElementById('a'), tap = document.getElementById('tap'), cv = document.getElementById('c'), g = cv.getContext('2d');
+const Q = new URLSearchParams(location.search), PREVIEW = Q.has('preview'), THUMB = Q.has('thumb'), ICON = Q.has('icon'), TOFF = +(Q.get('t') || 0);
+if (THUMB || ICON) document.getElementById('dl').style.display = 'none';   // still frames for the link preview and the icon
 const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-let W = 0, H = 0, dpr = 1, ac = null, an = null, bins = null, t0 = performance.now();
-function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
-  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+let LW = 320, LH = 200, buf, bg, img, px, tunA, tunD, W, H, dpr;
+// ---- the low-res buffer ----
+function size() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  LW = ICON ? 96 : (W < 520 ? 160 : 240);   // real demo resolutions: big hard pixels LH = Math.max(120, Math.min(720, Math.round(LW * H / W)));
+  buf = document.createElement('canvas'); buf.width = LW; buf.height = LH; bg = buf.getContext('2d');
+  img = bg.createImageData(LW, LH); px = new Uint32Array(img.data.buffer);
+  tunA = new Uint8Array(LW * LH); tunD = new Uint8Array(LW * LH);   // tunnel tables: angle and depth per pixel
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) { const dx = x - LW / 2, dy = y - LH / 2, d = Math.sqrt(dx * dx + dy * dy) + 0.5;
+    tunA[y * LW + x] = (Math.atan2(dy, dx) / Math.PI * 128) & 255; tunD[y * LW + x] = (24 * LW / d) & 255; }
+}
 addEventListener('resize', size); size();
-// the analyser: started from the first tap (iOS needs a user gesture); if anything fails, the demo runs on its own clock
-// iPhones: Web Audio obeys the silent switch, so a phone on silent would play nothing. Newer iOS (16.4+) lets the page say
-// "this is music" (audioSession 'playback'); older iOS skips the analyser and the demo dances on its own clock instead.
+const rgb = (r, gg, b) => (255 << 24) | ((b & 255) << 16) | ((gg & 255) << 8) | (r & 255);   // ImageData is little-endian ABGR
+const SIN = new Float32Array(1024); for (let i = 0; i < 1024; i++) SIN[i] = Math.sin(i / 1024 * Math.PI * 2);
+const sn = v => SIN[(v * 162.97 | 0) & 1023];   // fast sine (radians)
+// palette: black, deep violet, the ZUPAKOLLIDA orange, yellow, white, cyan, blue, back to black (256 colours, cycled)
+const PAL = new Uint32Array(256), STOPS = [[0, 0, 0, 0], [40, 40, 0, 90], [90, 242, 107, 43], [130, 255, 214, 60], [150, 255, 255, 230], [180, 80, 220, 255], [220, 30, 60, 170], [256, 0, 0, 0]];
+for (let i = 0; i < 256; i++) { let s = 0; while (STOPS[s + 1][0] <= i) s++; const A = STOPS[s], B = STOPS[s + 1], f = (i - A[0]) / (B[0] - A[0]);
+  PAL[i] = rgb(A[1] + (B[1] - A[1]) * f, A[2] + (B[2] - A[2]) * f, A[3] + (B[3] - A[3]) * f); }
+// ---- 5x7 bitmap font ----
+const FONT = {}; ('A 01110100011000111111100011000110001 B 11110100011000111110100011000111110 C 01110100011000010000100001000101110 '
+ + 'D 11100100101000110001100011001011100 E 11111100001000011110100001000011111 F 11111100001000011110100001000010000 '
+ + 'G 01110100011000010111100011000101111 H 10001100011000111111100011000110001 I 01110001000010000100001000010001110 '
+ + 'J 00111000100001000010000101001001100 K 10001100101010011000101001001010001 L 10000100001000010000100001000011111 '
+ + 'M 10001110111010110101100011000110001 N 10001100011100110101100111000110001 O 01110100011000110001100011000101110 '
+ + 'P 11110100011000111110100001000010000 Q 01110100011000110001101011001001101 R 11110100011000111110101001001010001 '
+ + 'S 01111100001000001110000010000111110 T 11111001000010000100001000010000100 U 10001100011000110001100011000101110 '
+ + 'V 10001100011000110001100010101000100 W 10001100011000110101101011010101010 X 10001100010101000100010101000110001 '
+ + 'Y 10001100011000101010001000010000100 Z 11111000010001000100010001000011111 0 01110100011001110101110011000101110 '
+ + '1 00100011000010000100001000010001110 2 01110100010000100010001000100011111 3 11111000100010000010000011000101110 '
+ + '4 00010001100101010010111110001000010 5 11111100001111000001000011000101110 6 00110010001000011110100011000101110 '
+ + '7 11111000010001000100010000100001000 8 01110100011000101110100011000101110 9 01110100011000101111000010001001100 '
+ + '. 00000000000000000000000000110001100 , 00000000000000000000011000010001000 ! 00100001000010000100001000000000100 '
+ + '- 00000000000000011111000000000000000 * 00000001001010101110101010010000000 : 00000011000110000000011000110000000 '
+ + '/ 00001000100001000100010000100010000 ( 00010001000100001000010000010000010 ) 01000001000001000010000100010001000 '
+ + "' 01100001000100000000000000000000000").split(' ').reduce((k, v, i, arr) => { if (i % 2 == 0) FONT[v] = arr[i + 1]; return k; }, 0);
+function glyphOn(ch, gx, gy) { const s = FONT[ch]; return s ? s[gy * 5 + gx] === '1' : false; }
+// one string in the font: colour per font row (copper), optional sine wobble per pixel column
+function text(str, x0, y0, sc, col, wob, t) {
+  x0 = Math.round(x0); y0 = Math.round(y0);
+  for (let i = 0; i < str.length; i++) { const ch = str[i], cx = x0 + i * 6 * sc; if (cx > LW || cx + 5 * sc < 0 || ch === ' ') continue;
+    for (let gx = 0; gx < 5; gx++) for (let k = 0; k < sc; k++) { const X = cx + gx * sc + k; if (X < 0 || X >= LW) continue;
+      const yo = wob ? Math.round(sn(X * 0.045 + t * 3.2) * wob) : 0;
+      for (let gy = 0; gy < 7; gy++) if (glyphOn(ch, gx, gy)) for (let j = 0; j < sc; j++) { const Y = y0 + gy * sc + j + yo;
+        if (Y >= 0 && Y < LH) { if (Y + 1 < LH && X + 1 < LW) px[(Y + 1) * LW + X + 1] = 0xff000000; px[Y * LW + X] = col(gy, X); } } } }
+}
+// ---- the ZUPAKOLLIDA logo (same 6-row letters as the app), each dot a block with a 1 px gap, copper-filled ----
+const LOGO = { Z: ['######', '    ##', '   ## ', '  ##  ', ' ##   ', '######'], U: ['##  ##', '##  ##', '##  ##', '##  ##', '##  ##', ' #### '],
+  P: ['##### ', '##  ##', '##  ##', '##### ', '##    ', '##    '], A: [' #### ', '##  ##', '##  ##', '######', '##  ##', '##  ##'],
+  K: ['##  ##', '## ## ', '####  ', '####  ', '## ## ', '##  ##'], O: [' #### ', '##  ##', '##  ##', '##  ##', '##  ##', ' #### '],
+  L: ['##    ', '##    ', '##    ', '##    ', '##    ', '######'], I: ['####', ' ## ', ' ## ', ' ## ', ' ## ', '####'],
+  D: ['##### ', '##  ##', '##  ##', '##  ##', '##  ##', '##### '] };
+function logo(word, y0, t, maxW) {
+  const cols = [...word].reduce((n, c) => n + LOGO[c][0].length + 1, -1), s = Math.max(1, Math.floor(maxW / cols)), gap = s >= 4 ? 1 : 0, x0 = Math.round((LW - cols * s) / 2), hgt = 6 * s;
+  for (let y = Math.max(0, y0 - 3); y < Math.min(LH, y0 + hgt + 4); y++) for (let x = 0; x < LW; x++) { const i = y * LW + x, c = px[i];   // darken the strip behind it
+    px[i] = rgb((c & 255) >> 2, ((c >> 8) & 255) >> 2, ((c >> 16) & 255) >> 2); }
+  let x = x0;
+  for (const c of word) { const gl = LOGO[c];
+    for (let r = 0; r < 6; r++) for (let k = 0; k < gl[r].length; k++) if (gl[r][k] === '#')
+      for (let yy = 0; yy < s - gap; yy++) for (let xx = 0; xx < s - gap; xx++) { const X = x + k * s + xx, Y = y0 + r * s + yy; if (X < 0 || X >= LW || Y < 0 || Y >= LH) continue;
+        if (Y + 1 < LH && X + 1 < LW) px[(Y + 1) * LW + X + 1] = rgb(60, 20, 6);
+        const f = ((Y - y0) / hgt + 0.15 * Math.sin(t * 2 + X * 0.05)), cc = Math.max(0, Math.min(1, f));   // copper: orange top, yellow, white bottom
+        px[Y * LW + X] = rgb(242 + 13 * cc, 107 + 140 * cc, 43 + 190 * cc * cc); }
+    x += (gl[0].length + 1) * s; }
+  return hgt;
+}
+// ---- the parts ----
+function plasma(t, k) {
+  const sh = Math.round(t * 50), ccx = LW / 2 + sn(t * 0.7) * LW * 0.3, ccy = LH / 2 + sn(t * 0.9) * LH * 0.3;
+  for (let y = 0, i = 0; y < LH; y++) for (let x = 0; x < LW; x++, i++) {
+    const dx = x - ccx, dy = y - ccy, v = sn(x * 0.045 + t) + sn(y * 0.037 - t * 1.3) + sn((x + y) * 0.03 + t * 0.6) + sn(Math.sqrt(dx * dx + dy * dy) * 0.06 - t * 2);
+    px[i] = PAL[((v + 4) * 64 + sh + k * 40) & 255]; }
+}
+function tunnel(t, k) {
+  const au = Math.round(t * 30), av = Math.round(t * (90 + 140 * k));
+  for (let i = 0; i < LW * LH; i++) { const u = (tunA[i] + au) & 255, v = (tunD[i] + av) & 255, c = ((u ^ v) & 32) ? 110 : 30, depth = Math.min(1, 900 / (tunD[i] * 6 + 1));
+    px[i] = PAL[(c + (v >> 2) + Math.round(k * 50)) & 255] & (depth < 0.25 ? 0xff3f3f3f : 0xffffffff); }
+}
+const BALLS = []; for (let i = 0; i < 40; i++) { const u = i / 40 * Math.PI * 2; BALLS.push([Math.cos(u) * (1 + 0.45 * Math.cos(3 * u)), Math.sin(u) * (1 + 0.45 * Math.cos(3 * u)), 0.45 * Math.sin(3 * u)]); }
+function vectorballs(t, k) {
+  for (let y = 0, i = 0; y < LH; y++) { const c = PAL[(10 + (y * 60 / LH) | 0) & 255]; for (let x = 0; x < LW; x++, i++) px[i] = c; }
+  for (let s = 0; s < 70; s++) { const x = (s * 97 + Math.round(t * (20 + s % 5 * 25))) % LW, y = (s * 53) % LH; px[y * LW + x] = 0xffffffff; }
+  const ax = t * 0.7, ay = t * 1.1, R = Math.min(LW, LH) * (0.3 + 0.05 * k), pts = [];
+  for (const [x, y, z] of BALLS) { const y1 = y * Math.cos(ax) - z * Math.sin(ax), z1 = y * Math.sin(ax) + z * Math.cos(ax), x2 = x * Math.cos(ay) + z1 * Math.sin(ay), z2 = -x * Math.sin(ay) + z1 * Math.cos(ay);
+    const p = 2.6 / (2.6 + z2); pts.push([LW / 2 + x2 * R * p, LH / 2 + y1 * R * p, z2, p]); }
+  pts.sort((m, n) => n[2] - m[2]);
+  for (const [cx, cy, z, p] of pts) { const r = Math.max(2, Math.round(6 * p * (LW / 240) * (1 + 0.25 * k)));
+    for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) { const d = xx * xx + yy * yy; if (d > r * r) continue; const X = Math.round(cx) + xx, Y = Math.round(cy) + yy;
+      if (X < 0 || X >= LW || Y < 0 || Y >= LH) continue; const hl = 1 - Math.sqrt((xx + r * 0.35) ** 2 + (yy + r * 0.35) ** 2) / (r * 1.6);
+      px[Y * LW + X] = PAL[(70 + Math.max(0, hl) * 80) & 255]; } }
+}
+// the rotozoomer's tile, built once: a 64x64 checkerboard with the logo's big pixel Z in the middle (palette indexes)
+const TEX = new Uint8Array(64 * 64);
+for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) { const zx = Math.floor((x - 8) / 8), zy = Math.floor((y - 8) / 8);
+  const inZ = zx >= 0 && zx < 6 && zy >= 0 && zy < 6 && LOGO.Z[zy][zx] === '#' && (x - 8) % 8 < 7 && (y - 8) % 8 < 7;
+  TEX[y * 64 + x] = inZ ? 120 : ((((x >> 3) ^ (y >> 3)) & 1) ? 40 : 205); }
+function rotozoom(t, k) {
+  const ang = t * 0.4, zm = 0.6 + 0.3 * sn(t * 0.5) - 0.15 * k, ca = Math.cos(ang) * zm, sa = Math.sin(ang) * zm, ox = t * 30, oy = t * 17, shift = Math.round(t * 20);
+  for (let y = 0, i = 0; y < LH; y++) { let u = (-LW / 2) * ca - (y - LH / 2) * sa + ox, v = (-LW / 2) * sa + (y - LH / 2) * ca + oy;
+    for (let x = 0; x < LW; x++, i++) { const c = TEX[((v & 63) << 6) | (u & 63)]; px[i] = PAL[(c + (c === 120 ? shift : 0)) & 255]; u += ca; v += sa; } }
+}
+const PARTS = [plasma, tunnel, vectorballs, rotozoom];
+const SCROLL = '        ZUPAKOLLIDA PRESENTS  -  MAYAFE  -  A LIVE TAKE FROM 17 OCT 2026  -  SUPERCOLLIDER X KO II X MINILAB 3  -  '
+  + 'KICKS FROM THE EP-133, BASS FROM A MOOG LADDER, KEYS FROM A PROPHET  -  GREETINGS TO EVERYONE WATCHING ON A PHONE  -  TURN IT UP  -  ';
+// ---- audio: the analyser starts on the first tap (iOS needs a gesture). iPhones mute Web Audio on the silent switch, so newer
+// iOS gets audioSession 'playback'; older iOS skips the analyser and the demo keeps its own beat ----
 const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let ac = null, an = null, bins = null;
 function audioGraph() {
-  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  if (ac) { if (ac.resume && ac.state === 'suspended') ac.resume(); return; }
   if (navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
   else if (iOS) { ac = { state: 'none' }; return; }
-  try { const AC = window.AudioContext || window.webkitAudioContext; ac = new AC();
-    const src = ac.createMediaElementSource(a); an = ac.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.75;
-    src.connect(an); an.connect(ac.destination); bins = new Uint8Array(an.frequencyBinCount);
+  try { const AC = window.AudioContext || window.webkitAudioContext; ac = new AC(); const src = ac.createMediaElementSource(a);
+    an = ac.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.6; src.connect(an); an.connect(ac.destination); bins = new Uint8Array(an.frequencyBinCount);
   } catch (e) { an = null; }
 }
 function toggle() { audioGraph(); if (a.paused) a.play().catch(() => {}); else a.pause(); }
-btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
-cv.addEventListener('click', toggle);
-addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); toggle(); } });
-a.addEventListener('play', () => { document.body.classList.add('playing'); btn.setAttribute('aria-label', 'Pause'); ico.innerHTML = '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>'; });
-a.addEventListener('pause', () => { document.body.classList.remove('playing'); btn.setAttribute('aria-label', 'Play'); ico.innerHTML = '<path d="M8 5v14l11-7z"/>'; });
+tap.addEventListener('click', toggle);
+addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggle(); } });
+a.addEventListener('play', () => tap.setAttribute('aria-label', 'Pause mayafe'));
+a.addEventListener('pause', () => tap.setAttribute('aria-label', 'Play mayafe'));
 a.addEventListener('ended', () => { a.currentTime = 0; });
-const mmss = s => (s / 60 | 0) + ':' + String(s % 60 | 0).padStart(2, '0');
-a.addEventListener('timeupdate', () => { const d = a.duration || 173; fill.style.width = (100 * a.currentTime / d) + '%'; timeEl.textContent = mmss(a.currentTime) + ' / ' + mmss(d); });
-document.getElementById('bar').addEventListener('click', e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); if (a.duration) a.currentTime = a.duration * (e.clientX - r.left) / r.width; });
-// stars
-const N = calm ? 60 : 180, stars = Array.from({ length: N }, () => ({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random() }));
-const text = '   ***  ZUPAKOLLIDA PRESENTS  ***  MAYAFE  ***  A LIVE TAKE  ***  SUPERCOLLIDER x KO II x MINILAB 3  ***  KICKS FROM THE EP-133, BASS FROM A MOOG LADDER, KEYS FROM A PROPHET-5  ***  GREETINGS TO EVERYONE LISTENING ON A PHONE  ***  PRESS PLAY, TURN IT UP   ';
-const preview = location.search.includes('preview');   // screenshots: run the demo as if playing
+// ---- the frame ----
+let t0 = performance.now(), last = 0, kick = 0, flash = 0, avgBass = 0, partWas = -1, clock = 0;
 function frame(now) {
-  const t = (now - t0) / 1000, playing = !a.paused || preview;
-  let bass = 0, mid = 0, high = 0;
-  if (an && playing) { an.getByteFrequencyData(bins); for (let i = 0; i < bins.length; i++) { const v = bins[i] / 255; if (i < 6) bass += v / 6; else if (i < 40) mid += v / 34; else high += v / (bins.length - 40); } }
-  else if (playing) { bass = 0.5 + 0.5 * Math.max(0, Math.sin(t * 13)); mid = 0.4 + 0.3 * Math.sin(t * 3); high = 0.3 + 0.2 * Math.sin(t * 7); }
-  const sp = playing ? 1 : 0.15;
-  // copper (raster) bars
-  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-  const nb = calm ? 3 : 6;
-  for (let b = 0; b < nb; b++) {
-    const y = H * (0.5 + 0.38 * Math.sin(t * sp * (0.9 + b * 0.17) + b * 1.3)), h = 26 + 40 * bass;
-    const hue = (20 + b * 40 + t * 20 * sp) % 360, gr = g.createLinearGradient(0, y - h / 2, 0, y + h / 2);
-    gr.addColorStop(0, `hsla(${hue},90%,10%,0)`); gr.addColorStop(0.5, `hsla(${hue},95%,${45 + 20 * mid}%,0.85)`); gr.addColorStop(1, `hsla(${hue},90%,10%,0)`);
-    g.fillStyle = gr; g.fillRect(0, y - h / 2, W, h);
+  const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
+  const playing = !a.paused || PREVIEW || THUMB || ICON;
+  clock += dt * (playing ? 1 : 0.25) * (calm ? 0.5 : 1);
+  const t = (THUMB || ICON) ? 7.3 + TOFF : clock + TOFF;
+  let bass = 0;
+  if (an && !a.paused) { an.getByteFrequencyData(bins); for (let i = 0; i < 5; i++) bass += bins[i] / 255 / 5; }
+  else if (playing) bass = Math.max(0, sn(t * 13.0)) ** 4;   // no analyser: a steady pulse at ~124 BPM
+  if (bass > avgBass * 1.25 + 0.05) kick = 1; avgBass = avgBass * 0.92 + bass * 0.08; kick *= 0.88;
+  const songT = (!a.paused && a.currentTime) ? a.currentTime : t, part = ICON ? 0 : Math.floor(songT / 16) % PARTS.length;
+  if (part !== partWas) { if (partWas >= 0 && !calm) flash = 1; partWas = part; }
+  PARTS[part](t, calm ? kick * 0.3 : kick);
+  // logo on top, title under it, scroller near the bottom, progress line at the very bottom
+  const ly = ICON ? Math.round((LH - 6 * Math.floor((LW * 0.62) / 6)) / 2) : Math.round(LH * 0.05), lh = ICON ? logo('Z', ly, t, Math.round(LW * 0.62)) : logo('ZUPAKOLLIDA', ly, t, LW - 8);
+  if (!ICON) {
+    const sc = 2, title = 'MAYAFE';
+    text(title, Math.round((LW - title.length * 6 * sc) / 2), ly + lh + 6, sc, (r) => PAL[(140 + r * 4) & 255], 0, t);
+    text(SCROLL, LW - ((t * 34) % (SCROLL.length * 12 + LW)), Math.round(LH * 0.78), 2, (r, X) => PAL[90 + ((r * 7 + X + Math.round(t * 60)) % 60 + 60) % 60], 6, t);   // bright copper only
+    if (a.paused && !PREVIEW && !THUMB && (Math.floor(clock * 2.5) % 2 === 0)) { const m = 'PRESS PLAY', s2 = LW >= 200 ? 2 : 1;
+      text(m, Math.round((LW - m.length * 6 * s2) / 2), Math.round(LH * 0.5 - 3.5 * s2), s2, () => 0xffffffff, 0, t); }
+    if (THUMB) { const m = 'A LIVE TAKE - PRESS PLAY'; text(m, Math.round((LW - m.length * 6) / 2), Math.round(LH * 0.66), 1, () => 0xffffffff, 0, t); }
+    if (a.duration && !THUMB) { const w = Math.round(LW * a.currentTime / a.duration); for (let x = 0; x < w; x++) { px[(LH - 2) * LW + x] = PAL[90]; px[(LH - 1) * LW + x] = PAL[90]; } }
   }
-  // starfield, rushing faster on the bass
-  const cx = W / 2, cy = H / 2, sc = Math.max(W, H) * 0.6;
-  for (const s of stars) {
-    s.z -= (0.002 + 0.02 * bass) * sp * (calm ? 0.4 : 1); if (s.z <= 0.02) { s.z = 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; }
-    const X = cx + s.x / s.z * sc * 0.5, Y = cy + s.y / s.z * sc * 0.5, r = (1 - s.z) * 3;
-    if (X < 0 || X > W || Y < 0 || Y > H) continue;
-    g.fillStyle = `rgba(255,255,255,${1 - s.z})`; g.fillRect(X, Y, r, r);
-  }
-  // spectrum: chunky bars along the bottom
-  const nbars = 32, bw = W / nbars, base = H - 70;
-  for (let i = 0; i < nbars; i++) {
-    let v = an && playing ? bins[Math.min(bins.length - 1, Math.floor(i * bins.length / nbars * 0.7))] / 255 : (playing ? 0.3 + 0.3 * Math.sin(t * 6 + i * 0.6) * Math.sin(t * 2.3 + i) : 0.03);
-    const h = Math.max(2, v * H * 0.22), seg = 6;
-    for (let y = 0; y < h; y += seg) { g.fillStyle = y > H * 0.15 ? '#ff3b30' : (y > H * 0.08 ? '#f2c12b' : '#8cd99a'); g.fillRect(i * bw + 2, base - y - seg + 1, bw - 4, seg - 2); }
-  }
-  // sine scroller
-  const fs = Math.max(18, Math.min(34, W / 18)); g.font = `bold ${fs}px Menlo, monospace`; g.textBaseline = 'middle';
-  const cw = fs * 0.62, total = text.length * cw, off = (t * (playing ? 120 : 30)) % total, ys = H * 0.72;
-  for (let i = 0; i < text.length; i++) {
-    const x = i * cw - off; const xx = x < -cw ? x + total : x; if (xx > W + cw) continue;
-    const y = ys + Math.sin(xx * 0.012 + t * 3) * (12 + 22 * mid);
-    g.fillStyle = `hsl(${(xx * 0.4 + t * 90) % 360},95%,62%)`; g.fillText(text[i], xx, y);
-  }
-  // the LED title pumps on the bass
-  led.style.transform = `scale(${1 + 0.06 * bass * (playing ? 1 : 0)})`;
+  if (flash > 0.02) { const f = flash; for (let i = 0; i < px.length; i++) { const c = px[i], r = c & 255, gg = (c >> 8) & 255, b = (c >> 16) & 255;
+      px[i] = rgb(r + (255 - r) * f, gg + (255 - gg) * f, b + (255 - b) * f); } flash *= 0.86; }
+  bg.putImageData(img, 0, 0);
+  g.imageSmoothingEnabled = false; g.drawImage(buf, 0, 0, cv.width, cv.height);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
