@@ -1,5 +1,5 @@
 # mayafe
 
-A live take made with ZUPAKOLLIDA (SuperCollider + KO II sounds + Arturia MiniLab 3).
+MAYAFE MATOV MAZODEK MAHU HAOSHER
 
-Listen: https://ayal.github.io/mayafe/
+https://ayal.github.io/mayafe/

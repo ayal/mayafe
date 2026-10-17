@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>mayafe · ZUPAKOLLIDA</title>
-<meta name="description" content="mayafe: a live take made with ZUPAKOLLIDA (SuperCollider + KO II + MiniLab 3). Press play.">
+<meta name="description" content="MAYAFE MATOV MAZODEK MAHU HAOSHER">
 <meta property="og:title" content="mayafe · ZUPAKOLLIDA">
-<meta property="og:description" content="A live take made with ZUPAKOLLIDA. Press play.">
+<meta property="og:description" content="MAYAFE MATOV MAZODEK MAHU HAOSHER">
 <meta property="og:type" content="music.song">
 <meta property="og:url" content="https://ayal.github.io/mayafe/">
 <meta property="og:image" content="https://ayal.github.io/mayafe/thumb.png">
@@ -145,8 +145,7 @@ function rotozoom(t, k) {
     for (let x = 0; x < LW; x++, i++) { const c = TEX[((v & 63) << 6) | (u & 63)]; px[i] = PAL[(c + (c === 120 ? shift : 0)) & 255]; u += ca; v += sa; } }
 }
 const PARTS = [plasma, tunnel, vectorballs, rotozoom];
-const SCROLL = '        ZUPAKOLLIDA PRESENTS  -  MAYAFE  -  A LIVE TAKE FROM 17 OCT 2026  -  SUPERCOLLIDER X KO II X MINILAB 3  -  '
-  + 'KICKS FROM THE EP-133, BASS FROM A MOOG LADDER, KEYS FROM A PROPHET  -  GREETINGS TO EVERYONE WATCHING ON A PHONE  -  TURN IT UP  -  ';
+const SCROLL = '        MAYAFE MATOV MAZODEK MAHU HAOSHER        MAYAFE MATOV MAZODEK MAHU HAOSHER        ';
 // ---- audio: the analyser starts on the first tap (iOS needs a gesture). iPhones mute Web Audio on the silent switch, so newer
 // iOS gets audioSession 'playback'; older iOS skips the analyser and the demo keeps its own beat ----
 const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -196,7 +195,7 @@ function frame(now) {
       text(m, Math.round((LW - m.length * 6 * s2) / 2), Math.round(LH * 0.5 - 3.5 * s2), s2, () => 0xffffffff, 0, t); }
     else if (a.paused && !PREVIEW && !THUMB && (Math.floor(clock * 2.5) % 2 === 0)) { const m = 'PRESS PLAY', s2 = LW >= 200 ? 2 : 1;
       text(m, Math.round((LW - m.length * 6 * s2) / 2), Math.round(LH * 0.5 - 3.5 * s2), s2, () => 0xffffffff, 0, t); }
-    if (THUMB) { const m = 'A LIVE TAKE - PRESS PLAY'; text(m, Math.round((LW - m.length * 6) / 2), Math.round(LH * 0.66), 1, () => 0xffffffff, 0, t); }
+    if (THUMB) { const m = 'PRESS PLAY'; text(m, Math.round((LW - m.length * 6) / 2), Math.round(LH * 0.66), 1, () => 0xffffffff, 0, t); }
     if (a.duration && !THUMB) { const wb = Math.round(LW * bufferedPct() / 100), w = Math.round(LW * a.currentTime / a.duration);
       for (let x = 0; x < wb; x++) { px[(LH - 2) * LW + x] = 0xff404040; px[(LH - 1) * LW + x] = 0xff404040; }   // downloaded
       for (let x = 0; x < w; x++) { px[(LH - 2) * LW + x] = rgb(242, 107, 43); px[(LH - 1) * LW + x] = rgb(242, 107, 43); } }   // played
