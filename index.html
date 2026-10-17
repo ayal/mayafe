@@ -160,9 +160,9 @@ const loading = () => LOADQ || (wantPlay && (a.paused || stalled || a.readyState
 const bufferedPct = () => { try { return a.duration ? Math.min(100, Math.round(100 * a.buffered.end(a.buffered.length - 1) / a.duration)) : 0; } catch (e) { return 0; } };
 tap.addEventListener('click', toggle);
 addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggle(); } });
-a.addEventListener('play', () => tap.setAttribute('aria-label', 'Pause mayafe'));
-a.addEventListener('pause', () => { tap.setAttribute('aria-label', 'Play mayafe'); if (a.ended) wantPlay = false; });
-a.addEventListener('ended', () => { a.currentTime = 0; });
+a.addEventListener('play', () => { wantPlay = true; tap.setAttribute('aria-label', 'Pause mayafe'); });
+a.addEventListener('pause', () => { wantPlay = false; tap.setAttribute('aria-label', 'Play mayafe'); });
+a.addEventListener('ended', () => { wantPlay = false; });   // play again (page or lock screen) restarts from the top by itself
 // the phone's media controls (lock screen, Control Center, Android notification): title, artwork, play/pause, a seek bar, +-10 s
 if ('mediaSession' in navigator) {
   const ms = navigator.mediaSession;
@@ -170,12 +170,12 @@ if ('mediaSession' in navigator) {
     artwork: [{ src: 'artwork-512.png', sizes: '512x512', type: 'image/png' }, { src: 'icon.png', sizes: '180x180', type: 'image/png' }] }); } catch (e) {}
   const pos = () => { try { if (a.duration) ms.setPositionState({ duration: a.duration, playbackRate: a.playbackRate || 1, position: Math.min(a.currentTime, a.duration) }); } catch (e) {} };
   const on = (k, f) => { try { ms.setActionHandler(k, f); } catch (e) {} };
-  on('play', () => { wantPlay = true; a.play().catch(() => { wantPlay = false; }); });
-  on('pause', () => { wantPlay = false; a.pause(); });
+  // play and pause are left to the phone itself: with the screen locked iOS freezes the page's JavaScript, so a custom 'play'
+  // handler never ran and the lock-screen play button did nothing (2026-10-18). The built-in handling plays the <audio> natively.
+  on('play', null); on('pause', null);
   on('seekto', d => { if (d.fastSeek && 'fastSeek' in a) a.fastSeek(d.seekTime); else a.currentTime = d.seekTime; pos(); });
   on('seekbackward', d => { a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 10)); pos(); });
   on('seekforward', d => { a.currentTime = Math.min(a.duration || 0, a.currentTime + (d.seekOffset || 10)); pos(); });
-  on('stop', () => { wantPlay = false; a.pause(); a.currentTime = 0; pos(); });
   ['loadedmetadata', 'play', 'pause', 'seeked', 'ratechange'].forEach(ev => a.addEventListener(ev, pos));
   a.addEventListener('play', () => { ms.playbackState = 'playing'; }); a.addEventListener('pause', () => { ms.playbackState = 'paused'; });
 }
