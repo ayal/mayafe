@@ -146,20 +146,13 @@ function rotozoom(t, k) {
 }
 const PARTS = [plasma, tunnel, vectorballs, rotozoom];
 const SCROLL = '        MAYAFE MATOV MAZODEK MAHU HAOSHER        MAYAFE MATOV MAZODEK MAHU HAOSHER        ';
-// ---- audio: the analyser starts on the first tap (iOS needs a gesture). iPhones mute Web Audio on the silent switch, so newer
-// iOS gets audioSession 'playback'; older iOS skips the analyser and the demo keeps its own beat ----
-const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-let ac = null, an = null, bins = null;
-function audioGraph() {
-  if (ac) { if (ac.resume && ac.state === 'suspended') ac.resume(); return; }
-  if (navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
-  else if (iOS) { ac = { state: 'none' }; return; }
-  try { const AC = window.AudioContext || window.webkitAudioContext; ac = new AC(); const src = ac.createMediaElementSource(a);
-    an = ac.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.6; src.connect(an); an.connect(ac.destination); bins = new Uint8Array(an.frequencyBinCount);
-  } catch (e) { an = null; }
-}
+// ---- audio: a plain <audio> element, nothing routed through Web Audio. iPhones interrupt an AudioContext when the tab goes to
+// the background (play then stopped working after coming back) and keep it from playing on the lock screen. The beat the demo
+// follows is measured once from the master (audio/mayafe-env.bin: the bass level, one byte per 1/30 s) and read at currentTime.
+let ENV = null;
+fetch('audio/mayafe-env.bin').then(r => r.ok ? r.arrayBuffer() : null).then(b => { if (b) ENV = new Uint8Array(b); }).catch(() => {});
 let wantPlay = false, stalled = false;
-function toggle() { audioGraph(); if (a.paused) { wantPlay = true; a.play().catch(() => { wantPlay = false; }); } else { wantPlay = false; a.pause(); } }
+function toggle() { if (a.paused) { wantPlay = true; a.play().catch(() => { wantPlay = false; }); } else { wantPlay = false; a.pause(); } }
 a.addEventListener('playing', () => { stalled = false; });
 a.addEventListener('waiting', () => { stalled = true; });
 a.addEventListener('stalled', () => { if (!a.paused) stalled = true; });
@@ -170,6 +163,24 @@ addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter')
 a.addEventListener('play', () => tap.setAttribute('aria-label', 'Pause mayafe'));
 a.addEventListener('pause', () => { tap.setAttribute('aria-label', 'Play mayafe'); if (a.ended) wantPlay = false; });
 a.addEventListener('ended', () => { a.currentTime = 0; });
+// the phone's media controls (lock screen, Control Center, Android notification): title, artwork, play/pause, a seek bar, +-10 s
+if ('mediaSession' in navigator) {
+  const ms = navigator.mediaSession;
+  try { ms.metadata = new MediaMetadata({ title: 'MAYAFE', artist: 'ZUPAKOLLIDA', album: 'MAYAFE MATOV MAZODEK MAHU HAOSHER',
+    artwork: [{ src: 'artwork-512.png', sizes: '512x512', type: 'image/png' }, { src: 'icon.png', sizes: '180x180', type: 'image/png' }] }); } catch (e) {}
+  const pos = () => { try { if (a.duration) ms.setPositionState({ duration: a.duration, playbackRate: a.playbackRate || 1, position: Math.min(a.currentTime, a.duration) }); } catch (e) {} };
+  const on = (k, f) => { try { ms.setActionHandler(k, f); } catch (e) {} };
+  on('play', () => { wantPlay = true; a.play().catch(() => { wantPlay = false; }); });
+  on('pause', () => { wantPlay = false; a.pause(); });
+  on('seekto', d => { if (d.fastSeek && 'fastSeek' in a) a.fastSeek(d.seekTime); else a.currentTime = d.seekTime; pos(); });
+  on('seekbackward', d => { a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 10)); pos(); });
+  on('seekforward', d => { a.currentTime = Math.min(a.duration || 0, a.currentTime + (d.seekOffset || 10)); pos(); });
+  on('stop', () => { wantPlay = false; a.pause(); a.currentTime = 0; pos(); });
+  ['loadedmetadata', 'play', 'pause', 'seeked', 'ratechange'].forEach(ev => a.addEventListener(ev, pos));
+  a.addEventListener('play', () => { ms.playbackState = 'playing'; }); a.addEventListener('pause', () => { ms.playbackState = 'paused'; });
+}
+// coming back to the tab: the button follows what the audio really does (it may have been paused by the phone meanwhile)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { wantPlay = !a.paused; stalled = false; } });
 // ---- the frame ----
 let t0 = performance.now(), last = 0, kick = 0, flash = 0, avgBass = 0, partWas = -1, clock = 0;
 function frame(now) {
@@ -178,7 +189,8 @@ function frame(now) {
   clock += dt * (playing ? 1 : 0.25) * (calm ? 0.5 : 1);
   const t = (THUMB || ICON) ? 7.3 + TOFF : clock + TOFF;
   let bass = 0;
-  if (an && !a.paused) { an.getByteFrequencyData(bins); for (let i = 0; i < 5; i++) bass += bins[i] / 255 / 5; }
+  if (globalThis.__bass) bass = globalThis.__bass(t);   // (the video renderer's hook)
+  else if (ENV && !a.paused) bass = ENV[Math.min(ENV.length - 1, Math.round(a.currentTime * 30))] / 255;
   else if (playing) bass = Math.max(0, sn(t * 13.0)) ** 4;   // no analyser: a steady pulse at ~124 BPM
   if (bass > avgBass * 1.25 + 0.05) kick = 1; avgBass = avgBass * 0.92 + bass * 0.08; kick *= 0.88;
   const songT = (!a.paused && a.currentTime) ? a.currentTime : t, part = ICON ? 0 : Math.floor(songT / 16) % PARTS.length;
