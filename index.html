@@ -213,8 +213,12 @@ function frame(now) {
     else if (a.paused && !PREVIEW && !THUMB && (Math.floor(clock * 2.5) % 2 === 0)) { const m = 'PRESS PLAY', s2 = LW >= 200 ? 2 : 1;
       text(m, Math.round((LW - m.length * 6 * s2) / 2), Math.round(LH * 0.5 - 3.5 * s2), s2, () => 0xffffffff, 0, t); }
     if (THUMB && !COVER) { const m = 'PRESS PLAY'; text(m, Math.round((LW - m.length * 6) / 2), Math.round(LH * 0.66), 1, () => 0xffffffff, 0, t); }
+    // the usual player bar: a dim track for the whole song, lighter grey for what's downloaded (desktop Chrome fetches ahead in
+    // steps, so this can stop partway and grow later), orange for what's played
     if (a.duration && !THUMB) { const w = Math.round(LW * a.currentTime / a.duration);
-      for (let x = 0; x < LW; x++) { px[(LH - 2) * LW + x] = 0xff404040; px[(LH - 1) * LW + x] = 0xff404040; }   // the whole song (not 'downloaded': desktop Chrome stops fetching partway, so that stayed short)
+      for (let x = 0; x < LW; x++) { px[(LH - 2) * LW + x] = 0xff262626; px[(LH - 1) * LW + x] = 0xff262626; }
+      for (let i = 0; i < a.buffered.length; i++) { const x0 = Math.round(LW * a.buffered.start(i) / a.duration), x1 = Math.min(LW, Math.round(LW * a.buffered.end(i) / a.duration));
+        for (let x = x0; x < x1; x++) { px[(LH - 2) * LW + x] = 0xff707070; px[(LH - 1) * LW + x] = 0xff707070; } }   // after a seek there can be several pieces
       for (let x = 0; x < w; x++) { px[(LH - 2) * LW + x] = rgb(242, 107, 43); px[(LH - 1) * LW + x] = rgb(242, 107, 43); } }   // played
   }
   if (flash > 0.02) { const f = flash; for (let i = 0; i < px.length; i++) { const c = px[i], r = c & 255, gg = (c >> 8) & 255, b = (c >> 16) & 255;
