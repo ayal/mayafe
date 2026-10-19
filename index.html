@@ -112,12 +112,13 @@ function logo(word, y0, t, maxW) {
 function plasma(t, k) {
   const sh = Math.round(t * 50), ccx = LW / 2 + sn(t * 0.7) * LW * 0.3, ccy = LH / 2 + sn(t * 0.9) * LH * 0.3;
   for (let y = 0, i = 0; y < LH; y++) for (let x = 0; x < LW; x++, i++) {
-    const dx = x - ccx, dy = y - ccy, v = sn(x * 0.045 + t) + sn(y * 0.037 - t * 1.3) + sn((x + y) * 0.03 + t * 0.6) + sn(Math.sqrt(dx * dx + dy * dy) * 0.06 - t * 2);
-    px[i] = PAL[((v + 4) * 64 + sh + k * 40) & 255]; }
+    const dx = x - ccx, dy = y - ccy, d = Math.sqrt(dx * dx + dy * dy), v = sn(x * 0.045 + t) + sn(y * 0.037 - t * 1.3) + sn((x + y) * 0.03 + t * 0.6) + sn(d * 0.06 - t * 2)
+      + k * 1.6 * sn(d * 0.16 - t * 9);   // the kick: a ripple out of the centre
+    px[i] = PAL[((v + 4) * 64 + sh + k * 70) & 255]; }
 }
 // the voxel landscape (the Comanche / "Mars" demo trick): a 256x256 height map and a colour map, built once; each frame casts
 // the view front to back, one screen column at a time, drawing only what rises above what's already drawn. Flying low over
-// the mountains into a striped setting sun; the kick pulses the sun and the haze.
+// the mountains into a striped setting sun; the kick makes the mountains jump and flare, the sun swell and the haze glow.
 const VH = new Uint8Array(65536), VC = new Uint32Array(65536);
 (() => { let sd = 20261017; const rnd = () => (sd = (Math.imul(sd, 1103515245) + 12345) >>> 0) / 4294967296, f = new Float32Array(65536);
   for (let o = 0, amp = 1; o < 6; o++, amp *= 0.5) { const n = 4 << o, cell = 256 / n, g = new Float32Array(n * n); for (let i = 0; i < g.length; i++) g[i] = rnd();
@@ -134,11 +135,11 @@ const VH = new Uint8Array(65536), VC = new Uint32Array(65536);
     VC[i] = rgb(Math.min(255, (A[1] + (B[1] - A[1]) * q) * lit), Math.min(255, (A[2] + (B[2] - A[2]) * q) * lit), Math.min(255, (A[3] + (B[3] - A[3]) * q) * lit)); } })();
 const VYB = new Int16Array(2048), VHS = 0.34; let vCamH = 60;   // VHS: map height units per height-map step
 function voxels(t, k) {
-  const hor = Math.round(LH * (LW > LH ? 0.55 : 0.42) + k * 2),   // lower on wide screens, so the sun clears the logo
-    HZ = [190 + 50 * k, 70 + 30 * k, 36];   // horizon glow
+  const hor = Math.round(LH * (LW > LH ? 0.55 : 0.42) + k * LH * 0.025),   // lower on wide screens, so the sun clears the logo
+    HZ = [190 + 65 * k, 70 + 70 * k, 36 + 40 * k];   // horizon glow
   for (let y = 0, i = 0; y < hor; y++) { const f = (y / hor) ** 2.2, c = rgb(6 + (HZ[0] - 6) * f, 2 + (HZ[1] - 2) * f, 22 + (HZ[2] - 22) * f); for (let x = 0; x < LW; x++, i++) px[i] = c; }
   for (let s2 = 0; s2 < 50; s2++) { const x = (s2 * 89) % LW, y = (s2 * 37) % Math.max(1, Math.round(hor * 0.55)); if ((s2 + Math.floor(t * 3)) % 7) px[y * LW + x] = 0xffd0c0c0; }   // a few twinkling stars
-  const sr = LW * 0.17 * (1 + 0.06 * k), scx = LW / 2, scy = hor - sr * 0.35;   // the sun: cut by widening gaps toward the horizon
+  const sr = Math.min(LW, LH * 1.2) * 0.17 * (1 + 0.18 * k), scx = LW / 2, scy = hor - sr * 0.35;   // the sun: cut by widening gaps toward the horizon
   for (let y = Math.max(0, Math.floor(scy - sr)); y < hor; y++) { const dy = y - scy, hw = Math.sqrt(Math.max(0, sr * sr - dy * dy)); if (hw <= 0) continue;
     const below = (y - (scy - sr * 0.1)) / (sr * 0.9); if (below > 0 && (y % 6) < Math.min(5, 1 + below * 5)) continue;
     const f = Math.max(0, Math.min(1, (y - (scy - sr)) / (2 * sr))), c = rgb(255, 225 - 120 * f, 120 - 90 * f);
@@ -146,25 +147,25 @@ function voxels(t, k) {
   const phi0 = 0.7, phi = phi0 + 0.45 * sn(t * 0.21) + 0.15 * sn(t * 0.53), cp = Math.cos(phi), sp = Math.sin(phi);
   const cx = 64 - Math.sin(phi0) * t * 26, cy = 64 - Math.cos(phi0) * t * 26, at = (d) => VH[((((cy - cp * d) | 0) & 255) << 8) | (((cx - sp * d) | 0) & 255)] * VHS;
   vCamH += (Math.max(at(0), at(12), at(30), at(55)) + 20 - vCamH) * 0.06;   // hug the ground, rising early for the peaks ahead
-  const scale = LW * 0.5, FAR = 300;   // the view spans 2z across LW at depth z, so square pixels need LW / 2
+  const scale = LW * 0.5, FAR = 300, vhs = VHS * (1 + 0.3 * k), lift = 1 + 0.45 * k;   // on the kick the mountains jump and light up   // the view spans 2z across LW at depth z, so square pixels need LW / 2
   VYB.fill(LH, 0, LW);
   for (let z = 1.5, dz = 0.4; z < FAR; z += dz, dz += 0.012) {
     const plx = -cp * z - sp * z, ply = sp * z - cp * z, prx = cp * z - sp * z, pry = -sp * z - cp * z, ddx = (prx - plx) / LW, ddy = (pry - ply) / LW;
     const fog = (z / FAR) ** 1.4, inv = 1 - fog; let mx = cx + plx, my = cy + ply;
-    for (let x = 0; x < LW; x++, mx += ddx, my += ddy) { const m = (((my | 0) & 255) << 8) | ((mx | 0) & 255), hs = Math.max(0, ((vCamH - VH[m] * VHS) / z * scale + hor) | 0);
-      if (hs >= VYB[x]) continue; const c = VC[m], col = rgb((c & 255) * inv + HZ[0] * fog, ((c >> 8) & 255) * inv + HZ[1] * fog, ((c >> 16) & 255) * inv + HZ[2] * fog);
+    for (let x = 0; x < LW; x++, mx += ddx, my += ddy) { const m = (((my | 0) & 255) << 8) | ((mx | 0) & 255), hs = Math.max(0, ((vCamH - VH[m] * vhs) / z * scale + hor) | 0);
+      if (hs >= VYB[x]) continue; const c = VC[m], col = rgb(Math.min(255, ((c & 255) * inv + HZ[0] * fog) * lift), Math.min(255, (((c >> 8) & 255) * inv + HZ[1] * fog) * lift), Math.min(255, (((c >> 16) & 255) * inv + HZ[2] * fog) * lift));
       for (let y = hs; y < VYB[x]; y++) px[y * LW + x] = col; VYB[x] = hs; } }
   for (let x = 0; x < LW; x++) for (let y = VYB[x] - 1; y >= hor; y--) px[y * LW + x] = rgb(HZ[0], HZ[1], HZ[2]);   // (gaps under the horizon: haze)
 }
 const BALLS = []; for (let i = 0; i < 40; i++) { const u = i / 40 * Math.PI * 2; BALLS.push([Math.cos(u) * (1 + 0.45 * Math.cos(3 * u)), Math.sin(u) * (1 + 0.45 * Math.cos(3 * u)), 0.45 * Math.sin(3 * u)]); }
 function vectorballs(t, k) {
-  for (let y = 0, i = 0; y < LH; y++) { const c = PAL[(10 + (y * 60 / LH) | 0) & 255]; for (let x = 0; x < LW; x++, i++) px[i] = c; }
-  for (let s = 0; s < 70; s++) { const x = (s * 97 + Math.round(t * (20 + s % 5 * 25))) % LW, y = (s * 53) % LH; px[y * LW + x] = 0xffffffff; }
-  const ax = t * 0.7, ay = t * 1.1, R = Math.min(LW, LH) * (0.3 + 0.05 * k), pts = [];
+  for (let y = 0, i = 0; y < LH; y++) { const c = PAL[(10 + (y * 60 / LH) + k * 25 * (1 - y / LH) | 0) & 255]; for (let x = 0; x < LW; x++, i++) px[i] = c; }
+  for (let s = 0; s < 70; s++) { const x = (s * 97 + Math.round(t * (20 + s % 5 * 25) + k * (s % 5) * 6)) % LW, y = (s * 53) % LH; px[y * LW + x] = 0xffffffff; }
+  const ax = t * 0.7 + k * 0.15, ay = t * 1.1, R = Math.min(LW, LH) * (0.3 + 0.12 * k), pts = [];
   for (const [x, y, z] of BALLS) { const y1 = y * Math.cos(ax) - z * Math.sin(ax), z1 = y * Math.sin(ax) + z * Math.cos(ax), x2 = x * Math.cos(ay) + z1 * Math.sin(ay), z2 = -x * Math.sin(ay) + z1 * Math.cos(ay);
     const p = 2.6 / (2.6 + z2); pts.push([LW / 2 + x2 * R * p, LH / 2 + y1 * R * p, z2, p]); }
   pts.sort((m, n) => n[2] - m[2]);
-  for (const [cx, cy, z, p] of pts) { const r = Math.max(2, Math.round(6 * p * (LW / 240) * (1 + 0.25 * k)));
+  for (const [cx, cy, z, p] of pts) { const r = Math.max(2, Math.round(6 * p * (LW / 240) * (1 + 0.8 * k)));
     for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) { const d = xx * xx + yy * yy; if (d > r * r) continue; const X = Math.round(cx) + xx, Y = Math.round(cy) + yy;
       if (X < 0 || X >= LW || Y < 0 || Y >= LH) continue; const hl = 1 - Math.sqrt((xx + r * 0.35) ** 2 + (yy + r * 0.35) ** 2) / (r * 1.6);
       px[Y * LW + X] = PAL[(70 + Math.max(0, hl) * 80) & 255]; } }
@@ -175,9 +176,9 @@ for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) { const zx = Math.floo
   const inZ = zx >= 0 && zx < 6 && zy >= 0 && zy < 6 && LOGO.Z[zy][zx] === '#' && (x - 8) % 8 < 7 && (y - 8) % 8 < 7;
   TEX[y * 64 + x] = inZ ? 120 : ((((x >> 3) ^ (y >> 3)) & 1) ? 40 : 205); }
 function rotozoom(t, k) {
-  const ang = t * 0.4, zm = 0.6 + 0.3 * sn(t * 0.5) - 0.15 * k, ca = Math.cos(ang) * zm, sa = Math.sin(ang) * zm, ox = t * 30, oy = t * 17, shift = Math.round(t * 20);
+  const ang = t * 0.4 + k * 0.12, zm = 0.6 + 0.3 * sn(t * 0.5) - 0.32 * k, ca = Math.cos(ang) * zm, sa = Math.sin(ang) * zm, ox = t * 30, oy = t * 17, shift = Math.round(t * 20 + k * 60);
   for (let y = 0, i = 0; y < LH; y++) { let u = (-LW / 2) * ca - (y - LH / 2) * sa + ox, v = (-LW / 2) * sa + (y - LH / 2) * ca + oy;
-    for (let x = 0; x < LW; x++, i++) { const c = TEX[((v & 63) << 6) | (u & 63)]; px[i] = PAL[(c + (c === 120 ? shift : 0)) & 255]; u += ca; v += sa; } }
+    for (let x = 0; x < LW; x++, i++) { const c = TEX[((v & 63) << 6) | (u & 63)]; px[i] = PAL[(c + (c === 120 ? shift : Math.round(k * 30))) & 255]; u += ca; v += sa; } }
 }
 const PARTS = [plasma, voxels, vectorballs, rotozoom];
 const SCROLL = '        MAYAFE MATOV MAZODEK MAHU HAOSHER        MAYAFE MATOV MAZODEK MAHU HAOSHER        ';
@@ -186,6 +187,10 @@ const SCROLL = '        MAYAFE MATOV MAZODEK MAHU HAOSHER        MAYAFE MATOV MA
 // follows is measured once from the master (audio/mayafe-env.bin: the bass level, one byte per 1/30 s) and read at currentTime.
 let ENV = null;
 fetch('audio/mayafe-env.bin').then(r => r.ok ? r.arrayBuffer() : null).then(b => { if (b) ENV = new Uint8Array(b); }).catch(() => {});
+let KICKS = null, kickF = -1;   // the low-end hits: strength (0-255) per 1/30 s where one starts (audio/mayafe-kicks.bin)
+fetch('audio/mayafe-kicks.bin').then(r => r.ok ? r.arrayBuffer() : null).then(b => { if (b) KICKS = new Uint8Array(b); }).catch(() => {});
+let BANDS = null;   // the equalizer: 8 bands (40 Hz - 14 kHz) per 1/30 s, measured from the master (audio/mayafe-bands.bin)
+fetch('audio/mayafe-bands.bin').then(r => r.ok ? r.arrayBuffer() : null).then(b => { if (b) BANDS = new Uint8Array(b); }).catch(() => {});
 let wantPlay = false, stalled = false;
 function toggle() { if (a.paused) { wantPlay = true; a.play().catch(() => { wantPlay = false; }); } else { wantPlay = false; a.pause(); } }
 a.addEventListener('playing', () => { stalled = false; });
@@ -219,6 +224,22 @@ if ('mediaSession' in navigator) {
 }
 // coming back to the tab: the button follows what the audio really does (it may have been paused by the phone meanwhile)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { wantPlay = !a.paused; stalled = false; } });
+// ---- the equalizer: 8 LED bars in the bottom-left corner, level with the download buttons and as far in from the edge ----
+const eqPeak = new Float32Array(8), eqLvl = new Float32Array(8), dlEl = document.getElementById('dl');
+function equalizer(dt) {
+  // sized from the buttons as they really show (CSS px), so it matches them on a phone and on a big screen alike
+  let bx = 4, by = LH - 5, hLow = 24;
+  try { const r = dlEl.getBoundingClientRect(); if (r.height) { bx = Math.round((W - r.right) / W * LW); by = Math.min(LH - 5, Math.round(r.bottom / H * LH) - 1); hLow = 3 * r.height / H * LH; } } catch (e) {}
+  const seg = Math.max(2, Math.round(hLow / 10)), rows = Math.max(5, Math.round(hLow / seg)), bw = Math.max(2, Math.round(seg * 1.6)), on = !a.paused && BANDS, f = on ? Math.min(BANDS.length / 8 - 1, Math.round(a.currentTime * 30)) : 0;
+  for (let b = 0; b < 8; b++) { const target = on ? BANDS[f * 8 + b] / 255 : (PREVIEW ? 0.5 + 0.45 * sn(clock * 5 + b * 1.3) * sn(clock * 2.1 + b) : 0.04);
+    eqLvl[b] += (target - eqLvl[b]) * Math.min(1, dt * 30); eqPeak[b] = Math.max(eqLvl[b], eqPeak[b] - dt * 0.6);
+    const x0 = bx + b * (bw + 1), lit = Math.round(eqLvl[b] * rows), pk = Math.min(rows - 1, Math.round(eqPeak[b] * rows));
+    for (let r = 0; r < rows; r++) { const y0 = by - r * seg, q = r / (rows - 1), col = r < lit ? rgb(242 + 13 * q, 107 + 140 * q, 43 + 190 * q * q) : (r === pk && pk > 0 ? 0xffffffff : 0x55000000);
+      for (let yy = 0; yy < seg - 1; yy++) { const Y = y0 - yy; if (Y < 0 || Y >= LH) continue;
+        for (let xx = 0; xx < bw; xx++) { const i = Y * LW + x0 + xx;
+          if (col === 0x55000000) { const c = px[i]; px[i] = rgb((c & 255) * 0.35, ((c >> 8) & 255) * 0.35, ((c >> 16) & 255) * 0.35); }   // unlit LED: darkened glass
+          else px[i] = col; } } } }
+}
 // ---- the frame ----
 let t0 = performance.now(), last = 0, kick = 0, flash = 0, avgBass = 0, partWas = -1, clock = 0;
 function frame(now) {
@@ -230,16 +251,22 @@ function frame(now) {
   if (globalThis.__bass) bass = globalThis.__bass(t);   // (the video renderer's hook)
   else if (ENV && !a.paused) bass = ENV[Math.min(ENV.length - 1, Math.round(a.currentTime * 30))] / 255;
   else if (playing) bass = Math.max(0, sn(t * 13.0)) ** 4;   // no analyser: a steady pulse at ~124 BPM
-  if (bass > avgBass * 1.25 + 0.05) kick = 1; avgBass = avgBass * 0.92 + bass * 0.08; kick *= 0.88;
+  if (KICKS && !a.paused && !globalThis.__bass) {   // measured hits: every slice since the last frame, so none is skipped; strong hits push fully
+    const f = Math.min(KICKS.length - 1, Math.floor(a.currentTime * 30)); if (f < kickF || f - kickF > 6) kickF = f - 1;
+    for (let j = kickF + 1; j <= f; j++) if (KICKS[j]) kick = Math.max(kick, Math.min(1, Math.max(0.3, (KICKS[j] / 255 - 0.1) / 0.55)));
+    kickF = f; kick *= 0.9; }
+  else { if (bass > avgBass * 1.25 + 0.05) kick = 1; kick *= 0.88; }
+  avgBass = avgBass * 0.92 + bass * 0.08;
   const songT = (!a.paused && a.currentTime) ? a.currentTime : t, part = ICON ? 0 : Math.floor(songT / 16) % PARTS.length;
   if (part !== partWas) { if (partWas >= 0 && !calm) flash = 1; partWas = part; }
   PARTS[part](t, calm ? kick * 0.3 : kick);
   // logo on top, title under it, scroller near the bottom, progress line at the very bottom
-  const ly = ICON ? Math.round((LH - 6 * Math.floor((LW * 0.62) / 6)) / 2) : Math.round(LH * 0.05), lh = ICON ? logo('Z', ly, t, Math.round(LW * 0.62)) : logo('ZUPAKOLLIDA', ly, t, LW - 8);
+  const ly = ICON ? Math.round((LH - 6 * Math.floor((LW * 0.62) / 6)) / 2) : Math.round(LH * 0.05), lh = ICON ? logo('Z', ly, t, Math.round(LW * 0.62)) : logo('ZUPAKOLLIDA', ly, t, Math.min(LW - 8, Math.round(LH * 1.6)));   // (smaller on a short landscape phone)
   if (!ICON) {
     const sc = 2, title = 'MAYAFE';
     text(title, Math.round((LW - title.length * 6 * sc) / 2), ly + lh + 6, sc, (r) => rgb(255, 245 - r * 12, 225 - r * 22), 0, t);
     if (!COVER) text(SCROLL, LW - ((t * 34) % (SCROLL.length * 12 + LW)), Math.round(LH * 0.78), 2, (r, X) => { const f = 0.5 + 0.5 * Math.sin(r * 0.6 + X * 0.05 + t * 3); return rgb(242 + 13 * f, 110 + 130 * f, 40 + 170 * f * f); }, 6, t);   // bright copper only
+    if (!THUMB) equalizer(dt);
     if (loading()) { const dots = '...'.slice(0, 1 + Math.floor(clock * 3) % 3), pc = bufferedPct(), m = 'LOADING' + dots.padEnd(3) + (pc ? ' ' + pc + '%' : ''), s2 = LW >= 200 ? 2 : 1;
       tap.setAttribute('aria-label', 'Loading mayafe, ' + pc + ' percent');
       text(m, Math.round((LW - m.length * 6 * s2) / 2), Math.round(LH * 0.5 - 3.5 * s2), s2, () => 0xffffffff, 0, t); }
