@@ -25,15 +25,17 @@
   #tap:focus-visible { outline: 3px solid #f26b2b; outline-offset: -6px; }
   #dl { position: fixed; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); z-index: 2;
         font: bold 12px/1 Menlo, "SF Mono", Consolas, monospace; letter-spacing: 1px; }
-  #dl a { color: #000; background: #f26b2b; text-decoration: none; padding: 6px 8px; margin-left: 6px; display: inline-block; }
-  #dl a:active { background: #fff; }
+  #dl a, #dl button { color: #000; background: #f26b2b; text-decoration: none; padding: 6px 8px; margin-left: 6px; display: inline-block;
+                     font: inherit; letter-spacing: inherit; border: 0; border-radius: 0; cursor: pointer; }
+  #dl a:active, #dl button:active { background: #fff; }
+  #dl button:focus { outline: none; } #dl button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 </style>
 </head>
 <body>
 <canvas id="c" aria-hidden="true"></canvas>
 <button id="tap" aria-label="Play mayafe"></button>
-<div id="dl"><a href="audio/mayafe-take-2026-10-17.mp3" download>MP3</a><a href="audio/mayafe-take-2026-10-17.flac" download>FLAC</a></div>
-<audio id="a" src="audio/mayafe-take-2026-10-17.mp3" preload="auto" playsinline></audio>
+<div id="dl"><button id="re" type="button" aria-label="Play mayafe again from the start">REPLAY</button><a href="audio/mayafe-take-2026-10-17.mp3" download>MP3</a><a href="audio/mayafe-take-2026-10-17.flac" download>FLAC</a></div>
+<audio id="a" src="audio/mayafe-take-2026-10-17.mp3" preload="auto" playsinline loop></audio>
 <script>
 // mayafe: a one-screen demo in the old Amiga / DOS way. Everything is drawn into a tiny low-res buffer (160-240 px wide) and blown
 // up with hard pixels. Parts: plasma, tunnel, vector balls, rotozoomer, switching every 16 s with a flash; a copper-filled pixel
@@ -159,10 +161,13 @@ a.addEventListener('stalled', () => { if (!a.paused) stalled = true; });
 const loading = () => LOADQ || (wantPlay && (a.paused || stalled || a.readyState < 3));
 const bufferedPct = () => { try { return a.duration ? Math.min(100, Math.round(100 * a.buffered.end(a.buffered.length - 1) / a.duration)) : 0; } catch (e) { return 0; } };
 tap.addEventListener('click', toggle);
-addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggle(); } });
+addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggle(); } else if (e.code === 'KeyR') replay(); });
 a.addEventListener('play', () => { wantPlay = true; tap.setAttribute('aria-label', 'Pause mayafe'); });
 a.addEventListener('pause', () => { wantPlay = false; tap.setAttribute('aria-label', 'Play mayafe'); });
-a.addEventListener('ended', () => { wantPlay = false; });   // play again (page or lock screen) restarts from the top by itself
+// the tune loops by itself (the loop attribute: native, so it also loops with the screen locked). REPLAY (or R) starts it over
+// from the top at any time, playing or not.
+function replay() { a.currentTime = 0; if (a.paused) { wantPlay = true; a.play().catch(() => { wantPlay = false; }); } }
+document.getElementById('re').addEventListener('click', replay);
 // the phone's media controls (lock screen, Control Center, Android notification): title, artwork, play/pause, a seek bar, +-10 s
 if ('mediaSession' in navigator) {
   const ms = navigator.mediaSession;
